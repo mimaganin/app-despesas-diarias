@@ -1,10 +1,9 @@
 // app.js
 // Import the functions you need from the SDKs you need
-// import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-// import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore"; 
 import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -23,6 +22,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Crie uma instância do Firestore
 const analytics = getAnalytics(app);
 
 // Variáveis Globais
@@ -136,34 +136,93 @@ exportBtn.addEventListener('click', () => {
 });
 
 // Funções para gerenciar despesas no localStorage
-function getExpenses() {
-    const expenses = localStorage.getItem('expenses');
-    return expenses ? JSON.parse(expenses) : [];
+// function getExpenses() {
+//     const expenses = localStorage.getItem('expenses');
+//     return expenses ? JSON.parse(expenses) : [];
+// }
+
+// function saveExpense(expense) {
+//     const expenses = getExpenses();
+//     expenses.push(expense);
+//     localStorage.setItem('expenses', JSON.stringify(expenses));
+// }
+
+// function updateExpense(index, updatedExpense) {
+//     const expenses = getExpenses();
+//     expenses[index] = updatedExpense;
+//     localStorage.setItem('expenses', JSON.stringify(expenses));
+// }
+
+// function deleteExpense(index) {
+//     const expenses = getExpenses();
+//     expenses.splice(index, 1);
+//     localStorage.setItem('expenses', JSON.stringify(expenses));
+// }
+
+// // Função para carregar despesas
+// function loadExpenses() {
+//     renderChart();
+//     renderExpensesTable();
+// }
+
+async function saveExpense(expense) {
+    try {
+      const expensesCollection = collection(db, "despesas"); // Nome da coleção
+      await addDoc(expensesCollection, expense);
+      console.log("Despesa salva com sucesso!");
+      showSuccessMessage();
+    } catch (error) {
+      console.error("Erro ao salvar despesa:", error);
+    }
 }
 
-function saveExpense(expense) {
-    const expenses = getExpenses();
-    expenses.push(expense);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-}
+async function updateExpense(index, updatedExpense) {
+    try {
+      // Obtenha a referência da despesa a ser atualizada
+      const expensesCollection = collection(db, "despesas");
+      const expenseRef = doc(expensesCollection, getExpenseIdByIndex(index)); // Função para obter ID
+      await updateDoc(expenseRef, updatedExpense);
+      console.log("Despesa atualizada com sucesso!");
+      isEditing = false;
+      editingIndex = null;
+      expenseForm.querySelector('button[type="submit"]').textContent = 'Adicionar';
+      showSuccessMessage('Despesa atualizada com sucesso!');
+    } catch (error) {
+      console.error("Erro ao atualizar despesa:", error);
+    }
+  }
+  
+  // Função para obter o ID da despesa pelo índice (implemente de acordo com sua estrutura)
+  function getExpenseIdByIndex(index) {
+    // ... sua implementação para recuperar o ID da despesa
+  }
 
-function updateExpense(index, updatedExpense) {
-    const expenses = getExpenses();
-    expenses[index] = updatedExpense;
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-}
+  async function deleteExpense(index) {
+    try {
+      const expensesCollection = collection(db, "despesas");
+      const expenseRef = doc(expensesCollection, getExpenseIdByIndex(index));
+      await deleteDoc(expenseRef);
+      console.log("Despesa excluída com sucesso!");
+      renderChart();
+      renderExpensesTable();
+      populateFilterYears();
+      showSuccessMessage('Despesa excluída com sucesso!');
+    } catch (error) {
+      console.error("Erro ao excluir despesa:", error);
+    }
+  }
 
-function deleteExpense(index) {
-    const expenses = getExpenses();
-    expenses.splice(index, 1);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-}
+  async function loadExpenses() {
+    try {
+      const expensesCollection = collection(db, "despesas");
+      const expensesSnapshot = await getDocs(expensesCollection);
+      const expenses = expensesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })); // Adiciona o ID
+      // ... utilize a lista de expenses para renderizar o gráfico e a tabela
+    } catch (error) {
+      console.error("Erro ao carregar despesas:", error);
+    }
+  }
 
-// Função para carregar despesas
-function loadExpenses() {
-    renderChart();
-    renderExpensesTable();
-}
 
 // Função para popular os filtros de ano
 function populateFilterYears() {
