@@ -1,0 +1,256 @@
+/* styles.css */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Evitar rolagem horizontal */
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+main {
+    padding: 1rem;
+}
+
+.container {
+    max-width: 700px; /* Largura máxima para desktop */
+    margin: 0 auto; /* Centraliza horizontalmente */
+    padding: 0 1rem; /* Padding lateral */
+}
+
+section {
+    background-color: white;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+input, select {
+    width: 100%;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+.input-with-symbol {
+    position: relative;
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #555;
+    font-size: 1rem;
+}
+
+.input-with-symbol input {
+    padding-left: 25px; /* Espaço para o símbolo */
+}
+
+button {
+    padding: 0.7rem 1.5rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#export-btn {
+    margin-bottom: 1rem;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: #ddd;
+    position: relative; /* Mudança para evitar sobreposição em telas menores */
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.filters label {
+    margin-right: 0.5rem;
+}
+
+.filters select {
+    padding: 0.3rem;
+}
+
+.warning {
+    background-color: #ffdddd;
+    border-left: 6px solid #f44336;
+    padding: 10px;
+    margin-top: 1rem;
+}
+
+.success-message {
+    background-color: #ddffdd;
+    border-left: 6px solid #4CAF50;
+    padding: 10px;
+    margin-top: 1rem;
+}
+
+.no-data-message {
+    text-align: center;
+    margin-top: 1rem;
+    color: #555;
+    font-style: italic;
+}
+
+/* Estilos para a Tabela de Despesas */
+.expenses-table-container {
+    margin-top: 2rem;
+}
+
+#expenses-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+#expenses-table th, #expenses-table td {
+    border: 1px solid #ddd;
+    padding: 0.8rem;
+    text-align: center;
+}
+
+#expenses-table th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#expenses-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#expenses-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilos para Botões de Ação na Tabela */
+.action-btn {
+    padding: 0.4rem 0.8rem;
+    margin: 0 0.2rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.edit-btn {
+    background-color: #2196F3; /* Azul */
+}
+
+.edit-btn:hover {
+    background-color: #0b7dda;
+}
+
+.delete-btn {
+    background-color: #f44336; /* Vermelho */
+}
+
+.delete-btn:hover {
+    background-color: #da190b;
+}
+
+@media (max-width: 600px) {
+    .filters {
+        flex-direction: column;
+    }
+    .container {
+        padding: 0 0.5rem; /* Menor padding em telas pequenas */
+    }
+
+    /* Ajustes na Tabela para Telas Pequenas */
+    #expenses-table th, #expenses-table td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .action-btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+.expenses-table-container {
+    overflow-x: auto; /* Permitir rolagem horizontal */
+    -webkit-overflow-scrolling: touch; /* Suporte para rolagem suave no iOS */
+}
+
+table {
+    width: 100%; /* Fazer a tabela ocupar 100% do contêiner */
+    border-collapse: collapse; /* Para evitar espaçamentos entre as células */
+}
+
+th, td {
+    padding: 8px; /* Espaçamento interno nas células */
+    text-align: left; /* Alinhar texto à esquerda */
+    border: 1px solid #ddd; /* Adicionar borda */
+}
+
+@media (max-width: 600px) {
+    th, td {
+        display: block; /* Faz cada célula ocupar uma linha */
+        width: 100%; /* Ocupa toda a largura disponível */
+        box-sizing: border-box; /* Inclui padding e bordas na largura total */
+    }
+
+    th {
+        display: none; /* Esconder cabeçalhos em telas pequenas */
+    }
+
+    td {
+        position: relative; /* Para posicionar pseudo-elementos */
+        padding-left: 50%; /* Espaço para o rótulo do campo */
+    }
+
+    td:before {
+        content: attr(data-label); /* Usar atributo data-label para exibir o rótulo */
+        position: absolute;
+        left: 10px; /* Espaço do rótulo */
+        width: calc(50% - 10px); /* Controlar a largura do rótulo */
+        white-space: nowrap; /* Impedir quebra de linha */
+        font-weight: bold; /* Rótulos em negrito */
+    }
+}
