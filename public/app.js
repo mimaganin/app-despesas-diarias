@@ -1,8 +1,7 @@
 // app.js
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -11,6 +10,7 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyBPJb5eqA_etrkWuNO8mOkBAGqh4l6B01Q",
   authDomain: "registro-despesas-diarias.firebaseapp.com",
+  databaseURL: "https://registro-despesas-diarias-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "registro-despesas-diarias",
   storageBucket: "registro-despesas-diarias.appspot.com",
   messagingSenderId: "865133835490",
@@ -50,8 +50,114 @@ const noDataMessageDiv = document.getElementById('no-data-message');
 const expensesTableContainer = document.getElementById('expenses-table-container');
 const expensesTableBody = document.querySelector('#expenses-table tbody');
 
+// // Evento de submissão do formulário
+// expenseForm.addEventListener('submit', (e) => {
+//     e.preventDefault();
+//     const name = document.getElementById('name').value.trim();
+//     const value = parseFloat(document.getElementById('value').value);
+//     const category = document.getElementById('category').value;
+//     const dateInput = document.getElementById('date').value;
+
+//     if (name && !isNaN(value) && category && dateInput) {
+//         const expenseDate = new Date(dateInput);
+//         const expense = {
+//             name,
+//             value,
+//             category,
+//             date: expenseDate.toISOString()
+//         };
+
+//         if (isEditing && editingIndex !== null) {
+//             // Atualizar a despesa existente
+//             updateExpense(editingIndex, expense);
+//             isEditing = false;
+//             editingIndex = null;
+//             expenseForm.querySelector('button[type="submit"]').textContent = 'Adicionar';
+//             showSuccessMessage('Despesa atualizada com sucesso!');
+//         } else {
+//             // Adicionar nova despesa
+//             saveExpense(expense);
+//             showSuccessMessage();
+//         }
+
+//         expenseForm.reset();
+//         setDefaultDate(); // Retorna a data atual após resetar o formulário
+//         renderChart();
+//         renderExpensesTable();
+//         populateFilterYears();
+//         checkExpenseMonth(expense.date);
+//     }
+// });
+
+// // Evento de exportação
+// exportBtn.addEventListener('click', () => {
+//     const expenses = getFilteredExpenses();
+//     if (expenses.length === 0) {
+//         alert('Nenhuma despesa para exportar.');
+//         return;
+//     }
+
+//     let csvContent = "Nome,Valor,Categoria,Data\n";
+//     expenses.forEach(exp => {
+//         const date = new Date(exp.date).toLocaleString('pt-BR', {
+//             timeZone: 'UTC'
+//         });
+//         // Escapar aspas duplas nas strings para evitar quebra do CSV
+//         const name = exp.name.replace(/"/g, '""');
+//         const category = exp.category.replace(/"/g, '""');
+//         const formattedValue = `€${exp.value.toFixed(2)}`; // Adiciona o símbolo de Euro
+//         csvContent += `"${name}",${formattedValue},"${category}","${date}"\n`;
+//     });
+
+//     // Criação do Blob com o conteúdo CSV
+//     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+//     // Verificação de suporte para download de Blob
+//     if (navigator.msSaveBlob) { // Para IE 10+
+//         navigator.msSaveBlob(blob, 'despesas.csv');
+//     } else {
+//         const link = document.createElement("a");
+//         if (link.download !== undefined) { // Suporte para navegadores modernos
+//             const url = URL.createObjectURL(blob);
+//             link.setAttribute("href", url);
+//             link.setAttribute("download", "despesas.csv");
+//             link.style.visibility = 'hidden';
+//             document.body.appendChild(link);
+//             link.click();
+//             document.body.removeChild(link);
+//         } else {
+//             // Fallback para navegadores que não suportam download via link
+//             window.open("data:text/csv;charset=utf-8," + encodeURIComponent(csvContent));
+//         }
+//     }
+// });
+
+// // Funções para gerenciar despesas no localStorage
+// function getExpenses() {
+//     const expenses = localStorage.getItem('expenses');
+//     return expenses ? JSON.parse(expenses) : [];
+// }
+
+// function saveExpense(expense) {
+//     const expenses = getExpenses();
+//     expenses.push(expense);
+//     localStorage.setItem('expenses', JSON.stringify(expenses));
+// }
+
+// function updateExpense(index, updatedExpense) {
+//     const expenses = getExpenses();
+//     expenses[index] = updatedExpense;
+//     localStorage.setItem('expenses', JSON.stringify(expenses));
+// }
+
+// function deleteExpense(index) {
+//     const expenses = getExpenses();
+//     expenses.splice(index, 1);
+//     localStorage.setItem('expenses', JSON.stringify(expenses));
+// }
+
 // Evento de submissão do formulário
-expenseForm.addEventListener('submit', (e) => {
+expenseForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value.trim();
     const value = parseFloat(document.getElementById('value').value);
@@ -67,31 +173,28 @@ expenseForm.addEventListener('submit', (e) => {
             date: expenseDate.toISOString()
         };
 
-        if (isEditing && editingIndex !== null) {
+        if (isEditing && editingId !== null) {
             // Atualizar a despesa existente
-            updateExpense(editingIndex, expense);
+            await updateExpense(editingId, expense);
             isEditing = false;
-            editingIndex = null;
+            editingId = null;
             expenseForm.querySelector('button[type="submit"]').textContent = 'Adicionar';
             showSuccessMessage('Despesa atualizada com sucesso!');
         } else {
             // Adicionar nova despesa
-            saveExpense(expense);
+            await saveExpense(expense);
             showSuccessMessage();
         }
 
         expenseForm.reset();
         setDefaultDate(); // Retorna a data atual após resetar o formulário
-        renderChart();
-        renderExpensesTable();
-        populateFilterYears();
-        checkExpenseMonth(expense.date);
+        loadExpenses(); // Atualiza as despesas após salvar
     }
 });
 
 // Evento de exportação
-exportBtn.addEventListener('click', () => {
-    const expenses = getFilteredExpenses();
+exportBtn.addEventListener('click', async () => {
+    const expenses = await getFilteredExpenses();
     if (expenses.length === 0) {
         alert('Nenhuma despesa para exportar.');
         return;
@@ -102,22 +205,19 @@ exportBtn.addEventListener('click', () => {
         const date = new Date(exp.date).toLocaleString('pt-BR', {
             timeZone: 'UTC'
         });
-        // Escapar aspas duplas nas strings para evitar quebra do CSV
         const name = exp.name.replace(/"/g, '""');
         const category = exp.category.replace(/"/g, '""');
-        const formattedValue = `€${exp.value.toFixed(2)}`; // Adiciona o símbolo de Euro
+        const formattedValue = `€${exp.value.toFixed(2)}`;
         csvContent += `"${name}",${formattedValue},"${category}","${date}"\n`;
     });
 
-    // Criação do Blob com o conteúdo CSV
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
-    // Verificação de suporte para download de Blob
-    if (navigator.msSaveBlob) { // Para IE 10+
+    if (navigator.msSaveBlob) {
         navigator.msSaveBlob(blob, 'despesas.csv');
     } else {
         const link = document.createElement("a");
-        if (link.download !== undefined) { // Suporte para navegadores modernos
+        if (link.download !== undefined) {
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
             link.setAttribute("download", "despesas.csv");
@@ -126,41 +226,162 @@ exportBtn.addEventListener('click', () => {
             link.click();
             document.body.removeChild(link);
         } else {
-            // Fallback para navegadores que não suportam download via link
             window.open("data:text/csv;charset=utf-8," + encodeURIComponent(csvContent));
         }
     }
 });
 
-// Funções para gerenciar despesas no localStorage
-function getExpenses() {
-    const expenses = localStorage.getItem('expenses');
-    return expenses ? JSON.parse(expenses) : [];
+// Funções para gerenciar despesas no Firestore
+async function saveExpense(expense) {
+    try {
+        await addDoc(collection(db, "expenses"), expense);
+        console.log('Despesa adicionada com sucesso no Firestore!');
+    } catch (error) {
+        console.error('Erro ao adicionar despesa: ', error);
+    }
 }
 
-function saveExpense(expense) {
-    const expenses = getExpenses();
-    expenses.push(expense);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
+async function loadExpenses() {
+    try {
+        const snapshot = await getDocs(collection(db, "expenses"));
+        const expenses = [];
+        snapshot.forEach(doc => {
+            expenses.push({ id: doc.id, ...doc.data() });
+        });
+        renderExpensesTable(expenses); // Atualiza a tabela
+        renderChart(expenses); // Atualiza o gráfico
+    } catch (error) {
+        console.error('Erro ao carregar despesas: ', error);
+    }
 }
 
-function updateExpense(index, updatedExpense) {
-    const expenses = getExpenses();
-    expenses[index] = updatedExpense;
-    localStorage.setItem('expenses', JSON.stringify(expenses));
+async function updateExpense(id, updatedExpense) {
+    try {
+        const expenseRef = doc(db, "expenses", id);
+        await updateDoc(expenseRef, updatedExpense);
+        console.log('Despesa atualizada com sucesso no Firestore!');
+    } catch (error) {
+        console.error('Erro ao atualizar despesa: ', error);
+    }
 }
 
-function deleteExpense(index) {
-    const expenses = getExpenses();
-    expenses.splice(index, 1);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
+async function deleteExpense(id) {
+    try {
+        await deleteDoc(doc(db, "expenses", id));
+        console.log('Despesa excluída com sucesso no Firestore!');
+        loadExpenses(); // Recarregar as despesas
+    } catch (error) {
+        console.error('Erro ao excluir despesa: ', error);
+    }
 }
 
-// Função para carregar despesas
-function loadExpenses() {
-    renderChart();
-    renderExpensesTable();
+// Função para obter despesas filtradas
+async function getFilteredExpenses() {
+    const expenses = [];
+    try {
+        const snapshot = await getDocs(collection(db, "expenses"));
+        snapshot.forEach(doc => {
+            expenses.push({ id: doc.id, ...doc.data() });
+        });
+    } catch (error) {
+        console.error('Erro ao buscar despesas: ', error);
+    }
+    return expenses;
 }
+
+// Função para renderizar a tabela de despesas
+function renderExpensesTable(expenses) {
+    expensesTableBody.innerHTML = ''; // Limpar tabela
+    if (expenses.length === 0) {
+        expensesTableContainer.style.display = 'none';
+        return;
+    }
+
+    expenses.forEach(exp => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td data-label="Nome">${exp.name}</td>
+            <td data-label="Valor">€${exp.value.toFixed(2)}</td>
+            <td data-label="Categoria">${exp.category}</td>
+            <td data-label="Data">${new Date(exp.date).toLocaleDateString('pt-BR')}</td>
+            <td data-label="Ações">
+                <button onclick="editExpense('${exp.id}')">Editar</button>
+                <button onclick="deleteExpense('${exp.id}')">Excluir</button>
+            </td>
+        `;
+        expensesTableBody.appendChild(tr);
+    });
+
+    expensesTableContainer.style.display = 'block';
+}
+
+// Função para preencher o formulário com os dados da despesa para edição
+async function editExpense(id) {
+    const expenses = await getFilteredExpenses();
+    const expense = expenses.find(exp => exp.id === id);
+    document.getElementById('name').value = expense.name;
+    document.getElementById('value').value = expense.value;
+    document.getElementById('category').value = expense.category;
+    document.getElementById('date').value = new Date(expense.date).toISOString().split('T')[0];
+    isEditing = true;
+    editingId = id;
+    expenseForm.querySelector('button[type="submit"]').textContent = 'Atualizar';
+}
+
+// Função para verificar se a despesa está sendo adicionada no mês atual
+function checkExpenseMonth(expenseDateISO) {
+    const expenseDate = new Date(expenseDateISO);
+    const currentDate = new Date();
+    const expenseMonth = expenseDate.getMonth();
+    const expenseYear = expenseDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    if (expenseMonth !== currentMonth || expenseYear !== currentYear) {
+        warningDiv.style.display = 'block';
+    } else {
+        warningDiv.style.display = 'none';
+    }
+}
+
+// Função para exibir a mensagem de sucesso
+function showSuccessMessage(message = 'Despesa adicionada com sucesso!') {
+    successMessageDiv.textContent = message;
+    successMessageDiv.style.display = 'block';
+    setTimeout(() => {
+        successMessageDiv.style.display = 'none';
+    }, 3000);
+}
+
+// Função para definir a data atual no campo de data
+function setDefaultDate() {
+    const dateInput = document.getElementById('date');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
+    const dd = String(today.getDate()).padStart(2, '0');
+    const formattedToday = `${yyyy}-${mm}-${dd}`;
+    dateInput.value = formattedToday;
+}
+
+// Funções para PWA
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+        .then(reg => {
+            console.log('Service Worker registrado com sucesso:', reg);
+        })
+        .catch(err => {
+            console.error('Falha ao registrar Service Worker:', err);
+        });
+    }
+}
+
+// // Função para carregar despesas
+// function loadExpenses() {
+//     renderChart();
+//     renderExpensesTable();
+// }
 
 // Função para popular os filtros de ano
 function populateFilterYears() {
@@ -191,30 +412,30 @@ function setupFilterListeners() {
 }
 
 // Função para obter despesas filtradas
-function getFilteredExpenses() {
-    const expenses = getExpenses();
-    const selectedYear = filterYear.value;
-    const selectedMonth = filterMonth.value;
+// function getFilteredExpenses() {
+//     const expenses = getExpenses();
+//     const selectedYear = filterYear.value;
+//     const selectedMonth = filterMonth.value;
 
-    return expenses.filter(exp => {
-        const date = new Date(exp.date);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1; // getMonth() retorna 0-11
+//     return expenses.filter(exp => {
+//         const date = new Date(exp.date);
+//         const year = date.getFullYear();
+//         const month = date.getMonth() + 1; // getMonth() retorna 0-11
 
-        let yearMatch = true;
-        let monthMatch = true;
+//         let yearMatch = true;
+//         let monthMatch = true;
 
-        if (selectedYear !== 'all') {
-            yearMatch = (year === parseInt(selectedYear));
-        }
+//         if (selectedYear !== 'all') {
+//             yearMatch = (year === parseInt(selectedYear));
+//         }
 
-        if (selectedMonth !== 'all') {
-            monthMatch = (month === parseInt(selectedMonth));
-        }
+//         if (selectedMonth !== 'all') {
+//             monthMatch = (month === parseInt(selectedMonth));
+//         }
 
-        return yearMatch && monthMatch;
-    });
-}
+//         return yearMatch && monthMatch;
+//     });
+// }
 
 // Função para renderizar o gráfico de pizza
 function renderChart() {
@@ -314,70 +535,70 @@ function renderChart() {
 }
 
 // Função para renderizar a tabela de despesas
-function renderExpensesTable() {
-    const expenses = getFilteredExpenses();
+// function renderExpensesTable() {
+//     const expenses = getFilteredExpenses();
 
-    // Limpar o corpo da tabela
-    expensesTableBody.innerHTML = '';
+//     // Limpar o corpo da tabela
+//     expensesTableBody.innerHTML = '';
 
-    if (expenses.length === 0) {
-        expensesTableContainer.style.display = 'none';
-        return;
-    }
+//     if (expenses.length === 0) {
+//         expensesTableContainer.style.display = 'none';
+//         return;
+//     }
 
-    expenses.forEach((exp, index) => {
-        const tr = document.createElement('tr');
+//     expenses.forEach((exp, index) => {
+//         const tr = document.createElement('tr');
 
-        const nameTd = document.createElement('td');
-        nameTd.textContent = exp.name;
-        tr.appendChild(nameTd);
+//         const nameTd = document.createElement('td');
+//         nameTd.textContent = exp.name;
+//         tr.appendChild(nameTd);
 
-        const valueTd = document.createElement('td');
-        valueTd.textContent = `€${exp.value.toFixed(2)}`;
-        tr.appendChild(valueTd);
+//         const valueTd = document.createElement('td');
+//         valueTd.textContent = `€${exp.value.toFixed(2)}`;
+//         tr.appendChild(valueTd);
 
-        const categoryTd = document.createElement('td');
-        categoryTd.textContent = exp.category;
-        tr.appendChild(categoryTd);
+//         const categoryTd = document.createElement('td');
+//         categoryTd.textContent = exp.category;
+//         tr.appendChild(categoryTd);
 
-        const dateTd = document.createElement('td');
-        const formattedDate = new Date(exp.date).toLocaleDateString('pt-BR');
-        dateTd.textContent = formattedDate;
-        tr.appendChild(dateTd);
+//         const dateTd = document.createElement('td');
+//         const formattedDate = new Date(exp.date).toLocaleDateString('pt-BR');
+//         dateTd.textContent = formattedDate;
+//         tr.appendChild(dateTd);
 
-        const actionsTd = document.createElement('td');
+//         const actionsTd = document.createElement('td');
 
-        // Botão Editar
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Editar';
-        editBtn.classList.add('action-btn', 'edit-btn');
-        editBtn.addEventListener('click', () => {
-            populateFormForEdit(index, exp);
-        });
-        actionsTd.appendChild(editBtn);
+//         // Botão Editar
+//         const editBtn = document.createElement('button');
+//         editBtn.textContent = 'Editar';
+//         editBtn.classList.add('action-btn', 'edit-btn');
+//         editBtn.addEventListener('click', () => {
+//             populateFormForEdit(index, exp);
+//         });
+//         actionsTd.appendChild(editBtn);
 
-        // Botão Excluir
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Excluir';
-        deleteBtn.classList.add('action-btn', 'delete-btn');
-        deleteBtn.addEventListener('click', () => {
-            if (confirm('Tem certeza de que deseja excluir esta despesa?')) {
-                deleteExpense(index);
-                renderChart();
-                renderExpensesTable();
-                populateFilterYears();
-                showSuccessMessage('Despesa excluída com sucesso!');
-            }
-        });
-        actionsTd.appendChild(deleteBtn);
+//         // Botão Excluir
+//         const deleteBtn = document.createElement('button');
+//         deleteBtn.textContent = 'Excluir';
+//         deleteBtn.classList.add('action-btn', 'delete-btn');
+//         deleteBtn.addEventListener('click', () => {
+//             if (confirm('Tem certeza de que deseja excluir esta despesa?')) {
+//                 deleteExpense(index);
+//                 renderChart();
+//                 renderExpensesTable();
+//                 populateFilterYears();
+//                 showSuccessMessage('Despesa excluída com sucesso!');
+//             }
+//         });
+//         actionsTd.appendChild(deleteBtn);
 
-        tr.appendChild(actionsTd);
+//         tr.appendChild(actionsTd);
 
-        expensesTableBody.appendChild(tr);
-    });
+//         expensesTableBody.appendChild(tr);
+//     });
 
-    expensesTableContainer.style.display = 'block';
-}
+//     expensesTableContainer.style.display = 'block';
+// }
 
 // Função para preencher o formulário com os dados da despesa para edição
 function populateFormForEdit(index, expense) {
@@ -401,57 +622,57 @@ function populateFormForEdit(index, expense) {
 }
 
 // Função para verificar se a despesa está sendo adicionada no mês atual
-function checkExpenseMonth(expenseDateISO) {
-    const expenseDate = new Date(expenseDateISO);
-    const currentDate = new Date();
+// function checkExpenseMonth(expenseDateISO) {
+//     const expenseDate = new Date(expenseDateISO);
+//     const currentDate = new Date();
 
-    const expenseMonth = expenseDate.getMonth();
-    const expenseYear = expenseDate.getFullYear();
+//     const expenseMonth = expenseDate.getMonth();
+//     const expenseYear = expenseDate.getFullYear();
 
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
+//     const currentMonth = currentDate.getMonth();
+//     const currentYear = currentDate.getFullYear();
 
-    console.log(`Despesa: Mês ${expenseMonth + 1}, Ano ${expenseYear}`);
-    console.log(`Atual: Mês ${currentMonth + 1}, Ano ${currentYear}`);
+//     console.log(`Despesa: Mês ${expenseMonth + 1}, Ano ${expenseYear}`);
+//     console.log(`Atual: Mês ${currentMonth + 1}, Ano ${currentYear}`);
 
-    if (expenseMonth !== currentMonth || expenseYear !== currentYear) {
-        warningDiv.style.display = 'block';
-        console.log("Aviso exibido.");
-    } else {
-        warningDiv.style.display = 'none';
-        console.log("Aviso oculto.");
-    }
-}
+//     if (expenseMonth !== currentMonth || expenseYear !== currentYear) {
+//         warningDiv.style.display = 'block';
+//         console.log("Aviso exibido.");
+//     } else {
+//         warningDiv.style.display = 'none';
+//         console.log("Aviso oculto.");
+//     }
+// }
 
 // Função para exibir a mensagem de sucesso
-function showSuccessMessage(message = 'Despesa adicionada com sucesso!') {
-    successMessageDiv.textContent = message;
-    successMessageDiv.style.display = 'block';
-    setTimeout(() => {
-        successMessageDiv.style.display = 'none';
-    }, 3000); // Mensagem desaparece após 3 segundos
-}
+// function showSuccessMessage(message = 'Despesa adicionada com sucesso!') {
+//     successMessageDiv.textContent = message;
+//     successMessageDiv.style.display = 'block';
+//     setTimeout(() => {
+//         successMessageDiv.style.display = 'none';
+//     }, 3000); // Mensagem desaparece após 3 segundos
+// }
 
 // Função para definir a data atual no campo de data
-function setDefaultDate() {
-    const dateInput = document.getElementById('date');
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
-    const dd = String(today.getDate()).padStart(2, '0');
-    const formattedToday = `${yyyy}-${mm}-${dd}`;
-    dateInput.value = formattedToday;
-}
+// function setDefaultDate() {
+//     const dateInput = document.getElementById('date');
+//     const today = new Date();
+//     const yyyy = today.getFullYear();
+//     const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
+//     const dd = String(today.getDate()).padStart(2, '0');
+//     const formattedToday = `${yyyy}-${mm}-${dd}`;
+//     dateInput.value = formattedToday;
+// }
 
 // Funções para PWA
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-        .then(reg => {
-            console.log('Service Worker registrado com sucesso:', reg);
-        })
-        .catch(err => {
-            console.error('Falha ao registrar Service Worker:', err);
-        });
-    }
-}
+// function registerServiceWorker() {
+//     if ('serviceWorker' in navigator) {
+//         navigator.serviceWorker.register('service-worker.js')
+//         .then(reg => {
+//             console.log('Service Worker registrado com sucesso:', reg);
+//         })
+//         .catch(err => {
+//             console.error('Falha ao registrar Service Worker:', err);
+//         });
+//     }
+// }
